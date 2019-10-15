@@ -22,7 +22,7 @@ return 'Hello World!';
 });
 
 Route::get('products', 'ProductController@index');
-Route::get('products/{product}', 'ProductController@show');
+Route::get('products/{id}', 'ProductController@show');
 Route::post('products', 'ProductController@store');
-Route::put('products/{product}', 'ProductController@update')->name('products.update');
+Route::put('products/{id}', 'ProductController@update')->name('products.update');
 Route::delete('products/{product}', 'ProductController@destroy')->name('products.delete');
