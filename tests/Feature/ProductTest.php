@@ -295,7 +295,7 @@ class ProductTest extends TestCase
     /*
      * UPDATE-3
      * */
-    public function test_update_product_with_price_least_then_0_return_error()
+    public function test_update_product_with_price_less_than_0_return_error()
     {
         $product = factory(Product::class)->create([
             'id' => 1,

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\ErrorField;
 use App\ErrorResponse;
+use App\Http\Requests\ProductStoreRequest;
+use App\Http\Requests\ProductUpdateRequest;
 use App\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -26,23 +28,9 @@ class ProductController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(ProductStoreRequest $request)
     {
         // Create a new product
-        $validatedData = Validator::make($request->all(), [
-            'name' => 'required',
-            'price' => 'required|numeric|gte:0'
-        ]);
-
-        if($validatedData->fails()) {
-            $responseError = new ErrorResponse();
-
-            array_push($responseError->errors, new ErrorField(
-                "ERROR-1", "Unprocessable Entity"
-            ));
-
-            return response()->json($responseError, 422);
-        }
 
         $product = Product::create($request->all());
 
@@ -80,7 +68,7 @@ class ProductController extends Controller
      * @param \App\Product $product
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, int $id)
+    public function update(ProductUpdateRequest $request, int $id)
     {
         $responseError = new ErrorResponse();
         $product = Product::find($id);
@@ -91,18 +79,6 @@ class ProductController extends Controller
             ));
 
             return response()->json($responseError, 404);
-        }
-
-        $validatedData = Validator::make($request->all(), [
-            'price' => 'numeric|gte:0'
-        ]);
-
-        if($validatedData->fails()) {
-            array_push($responseError->errors, new ErrorField(
-                "ERROR-1", "Unprocessable Entity"
-            ));
-
-            return response()->json($responseError, 422);
         }
 
         $product->update($request->all());

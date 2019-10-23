@@ -16,10 +16,10 @@ use Illuminate\Http\Request;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
 return $request->user();
 });
-
 Route::get('/greeting', function (request $request){
-return 'Hello World!';
+    return 'Hello World!';
 });
+
 
 Route::get('products', 'ProductController@index');
 Route::get('products/{id}', 'ProductController@show');
