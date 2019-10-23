@@ -6,6 +6,7 @@ use App\ErrorField;
 use App\ErrorResponse;
 use App\Http\Requests\ProductStoreRequest;
 use App\Http\Requests\ProductUpdateRequest;
+use App\Http\Resources\ProductResource;
 use App\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -31,12 +32,14 @@ class ProductController extends Controller
     public function store(ProductStoreRequest $request)
     {
         // Create a new product
-
-        $product = Product::create($request->all());
+        $product = Product::create([
+            "name" => $request->input('data.attributes.name'),
+            "price" => $request->input('data.attributes.price')
+        ]);
 
         // Return a response with a product json
         // representation and a 201 status code
-        return response()->json($product, 201);
+        return response()->json(new ProductResource($product), 201);
     }
 
     /**

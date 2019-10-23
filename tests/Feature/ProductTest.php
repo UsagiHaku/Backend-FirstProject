@@ -18,8 +18,12 @@ class ProductTest extends TestCase
     {
         // Given
         $productData = [
-            'name' => 'Super Product',
-            'price' => '23.30'
+            "data" => [
+                "attributes" => [
+                    'name' => 'Super Product',
+                    'price' => '23.30'
+                ]
+            ]
         ];
 
         // When
@@ -31,16 +35,21 @@ class ProductTest extends TestCase
 
         // Assert the response has the correct structure
         $response->assertJsonStructure([
-            'id',
-            'name',
-            'price'
+            'data' => [
+                'attributes' => [
+                    'name',
+                    'price'
+                ]
+            ]
         ]);
 
         // Assert the product was created
         // with the correct data
         $response->assertJsonFragment([
-            'name' => 'Super Product',
-            'price' => '23.30'
+            "attributes" => [
+                'name' => 'Super Product',
+                'price' => '23.30'
+            ]
         ]);
 
         $body = $response->decodeResponseJson();
@@ -49,7 +58,7 @@ class ProductTest extends TestCase
         $this->assertDatabaseHas(
             'products',
             [
-                'id' => $body['id'],
+                'id' => $body['data']['id'],
                 'name' => 'Super Product',
                 'price' => '23.30'
             ]
