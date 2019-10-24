@@ -20,7 +20,7 @@ class ProductTest extends TestCase
         $productData = [
             "data" => [
                 "attributes" => [
-                    'name' => 'Super Product',
+                    'name' => 'Product name',
                     'price' => '23.30'
                 ]
             ]
@@ -43,23 +43,26 @@ class ProductTest extends TestCase
             ]
         ]);
 
+        $body = $response->decodeResponseJson();
+
         // Assert the product was created
         // with the correct data
         $response->assertJsonFragment([
+            'id' => $body['data']['id'],
             "attributes" => [
-                'name' => 'Super Product',
+                'name' => 'Product name',
                 'price' => '23.30'
             ]
         ]);
 
-        $body = $response->decodeResponseJson();
+
 
         // Assert product is on the database
         $this->assertDatabaseHas(
             'products',
             [
                 'id' => $body['data']['id'],
-                'name' => 'Super Product',
+                'name' => 'Product name',
                 'price' => '23.30'
             ]
         );
@@ -71,7 +74,11 @@ class ProductTest extends TestCase
     public function test_create_product_without_name_return_error()
     {
         $productData = [
-            'price' => '23.30'
+            "data" => [
+                "attributes" => [
+                    'price' => '23.30'
+                ]
+            ]
         ];
 
         $response = $this->json('POST', '/api/products', $productData);
@@ -91,7 +98,11 @@ class ProductTest extends TestCase
     public function test_create_product_without_price_return_error()
     {
         $productData = [
-            'name' => 'Product name'
+            "data" => [
+                "attributes" => [
+                    'name' => 'Product name'
+                ]
+            ]
         ];
 
         $response = $this->json('POST', '/api/products', $productData);
@@ -111,8 +122,12 @@ class ProductTest extends TestCase
     public function test_create_product_with_price_not_a_number_return_error()
     {
         $productData = [
-            'name' => 'Product name',
-            'price' => 'Not a number'
+            "data" => [
+                "attributes" => [
+                    'name' => 'Product name',
+                    'price' => 'Not a number'
+                ]
+            ]
         ];
 
         $response = $this->json('POST', '/api/products', $productData);
@@ -129,11 +144,15 @@ class ProductTest extends TestCase
     /*
     * CREATE-5
     * */
-    public function test_create_product_with_price_least_then_0_return_error()
+    public function test_create_product_with_price_less_than_0_return_error()
     {
         $productData = [
-            'name' => 'Product name',
-            'price' => '-10'
+            "data" => [
+                "attributes" => [
+                    'name' => 'Product name',
+                    'price' => '-10'
+                ]
+        ]
         ];
 
         $response = $this->json('POST', '/api/products', $productData);
@@ -153,27 +172,45 @@ class ProductTest extends TestCase
     public function test_list_with_two_products()
     {
         // Given
-        factory(Product::class)->create([
+        $product1 = factory(Product::class)->create([
+            'id' => 1,
             'name' => 'Product name 1',
-            'price' => '100',
+            'price' => '100.30',
         ]);
-
-        factory(Product::class)->create([
+        $product2 = factory(Product::class)->create([
+            'id' => 2,
             'name' => 'Product name 2',
-            'price' => '200',
+            'price' => '100.30',
         ]);
 
         $response = $this->json('GET', '/api/products');
-
         $response->assertStatus(200)
-            ->assertJsonFragment([
-                'name' => 'Product name 1',
-                'price' => '100.00',
-            ])
-            ->assertJsonFragment([
-                'name' => 'Product name 2',
-                'price' => '200.00',
-            ]);
+        -> assertJson([
+            "data" => [
+                [
+                    "type" => "products",
+                    "id" => $product1->id,
+                    "attributes" => [
+                        "name" => $product1->name,
+                        "price" => $product1->price
+                    ],
+                    "links" => [
+                        "self" => route('products.show', [$product1->id])
+                    ]
+                ],
+                [
+                    "type" => "products",
+                    "id" => $product2->id,
+                    "attributes" => [
+                        "name" => $product2->name,
+                        "price" => $product2->price
+                    ],
+                    "links" => [
+                        "self" => route('products.show', [$product2->id])
+                    ]
+                ]
+            ]
+        ]);
     }
 
     /*
@@ -183,11 +220,13 @@ class ProductTest extends TestCase
     {
         // Given
         factory(Product::class)->create([
+            'id' => 1,
             'name' => 'Product name 1',
             'price' => '100',
         ]);
 
         factory(Product::class)->create([
+            'id' => 2,
             'name' => 'Product name 2',
             'price' => '200',
         ]);
@@ -196,12 +235,16 @@ class ProductTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonFragment([
-                'name' => 'Product name 1',
-                'price' => '100.00',
+                "attributes" => [
+                    'name' => 'Product name 1',
+                    'price' => '100.00'
+                ]
             ])
             ->assertJsonFragment([
-                'name' => 'Product name 2',
-                'price' => '200.00',
+                "attributes" => [
+                    'name' => 'Product name 2',
+                    'price' => '200.00'
+                ]
             ]);
     }
 
@@ -211,9 +254,9 @@ class ProductTest extends TestCase
     public function test_show_one_product()
     {
         // Given
-        $product = factory(Product::class)->create([
+        factory(Product::class)->create([
             'id' => 1,
-            'name' => 'Product name',
+            'name' => 'Product name 1',
             'price' => '100.30',
         ]);
 
@@ -221,7 +264,7 @@ class ProductTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonFragment([
-                'name' => 'Product name',
+                'name' => 'Product name 1',
                 'price' => '100.30',
             ]);
 
@@ -262,7 +305,11 @@ class ProductTest extends TestCase
         ]);
 
         $updatedProduct = [
-            'name' => 'Updated Product name'
+            "data" => [
+                "attributes" => [
+                    'name' => 'Updated Product name'
+                ]
+            ]
         ];
 
         $response = $this->put(route('products.update', $product->id), $updatedProduct);
@@ -287,7 +334,11 @@ class ProductTest extends TestCase
         ]);
 
         $updatedProduct = [
-            'price' => 'Not a number'
+            "data" => [
+                "attributes" => [
+                    'price' => 'Not a number'
+                ]
+            ]
         ];
 
         $response = $this->put(route('products.update', $product->id), $updatedProduct);
@@ -313,7 +364,11 @@ class ProductTest extends TestCase
         ]);
 
         $updatedProduct = [
-            'price' => '-10'
+            "data" => [
+                "attributes" => [
+                    'price' => '-10'
+                ]
+            ]
         ];
 
         $response = $this->put(route('products.update', $product->id), $updatedProduct);
@@ -332,7 +387,7 @@ class ProductTest extends TestCase
      * */
     public function test_update_product_with_unregistered_id_return_error()
     {
-        $product = factory(Product::class)->create([
+        factory(Product::class)->create([
             'id' => 1,
             'name' => 'Product name',
             'price' => '100.30',

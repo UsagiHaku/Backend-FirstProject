@@ -6,6 +6,7 @@ use App\ErrorField;
 use App\ErrorResponse;
 use App\Http\Requests\ProductStoreRequest;
 use App\Http\Requests\ProductUpdateRequest;
+use App\Http\Resources\ProductCollection;
 use App\Http\Resources\ProductResource;
 use App\Product;
 use Illuminate\Http\Request;
@@ -16,11 +17,12 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function index()
     {
-        return Product::all();
+        $products = ProductResource::collection(Product::all());
+        return $products;
     }
 
     /**
@@ -39,17 +41,16 @@ class ProductController extends Controller
 
         // Return a response with a product json
         // representation and a 201 status code
-        return response()->json(new ProductResource($product), 201);
+        return response()->json(["data" => new ProductResource($product)], 201);
     }
 
     /**
      * Display the specified resource.
      *
      * @param \App\Product $product
-     * @return \Illuminate\Http\Response
+     * @return ProductResource|\Illuminate\Http\JsonResponse
      */
-    public function show(int $id)
-    {
+    public function show(int $id){
         $responseError = new ErrorResponse();
         $product = Product::find($id);
 
@@ -61,7 +62,7 @@ class ProductController extends Controller
             return response()->json($responseError, 404);
         }
 
-        return $product;
+        return response()->json(new ProductResource($product));
     }
 
     /**
@@ -84,8 +85,12 @@ class ProductController extends Controller
             return response()->json($responseError, 404);
         }
 
-        $product->update($request->all());
-        return response()->json($product, 200);
+        $product->update([
+            "name" => $request->input('data.attributes.name') ?: $product->name,
+            "price" => $request->input('data.attributes.price') ?: $product->price
+        ]);
+        return response()->json(new ProductResource($product), 200);
+
     }
 
     /**

@@ -21,7 +21,7 @@ Route::get('/greeting', function (request $request){
 });
 
 
-Route::get('products', 'ProductController@index');
+Route::get('products', 'ProductController@index')->name('products.index');
 Route::get('products/{id}', 'ProductController@show')->name('products.show');
 Route::post('products', 'ProductController@store');
 Route::put('products/{id}', 'ProductController@update')->name('products.update');
